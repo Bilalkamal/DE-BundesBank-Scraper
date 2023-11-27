@@ -15,11 +15,9 @@ def main():
     setup_logging()
 
     # Define the date range and document types for scraping
-    # start_date = date.fromisoformat('2022-01-01')  # Start date of documents
-    start_date = date.fromisoformat('2022-11-01')  # Start date of documents
+    start_date = date.fromisoformat('2022-01-01')  # Start date of documents
     end_date = date.fromisoformat('2022-12-31')    # End date of documents
-    # document_types = ["Speeches", "Press-releases"]  # Options: "Speeches", "Interviews", "Press-releases"
-    document_types = [ "Press-releases"]  # Options: "Speeches", "Interviews", "Press-releases"
+    document_types = ["Speeches", "Press-releases"]  # Options: "Speeches", "Interviews", "Press-releases"
 
     # Create an instance of BundesbankScraper
     scraper = BundesbankScraper(start_date, end_date, document_types)
