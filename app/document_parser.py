@@ -46,18 +46,36 @@ class DocumentParser:
         main_content = self.soup.find('div', id='main-content')
         main = main_content.find('main', class_='main') if main_content else None
 
-        document_text = self._extract_element_text(main, 'main') if main else ''
+        document_text = main.get_text(strip=True) if main else ''
         document_title = self._extract_element_text(main, 'main__headline') if main else ''
         document_author = self._extract_element_text(main, 'metadata__authors') if main else ''
 
-        return {
+   
+
+        details = {
             "datetime_accessed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "document_html": self.html_content,
-            "document_text": document_text,
             "document_title": document_title,
-            "document_html_source_language": "", 
-            "document_text_source_language": "", 
-            "document_title_source_language": "",
             "document_author": document_author,
             "document_url": url
         }
+
+        # If the URL is for the German version
+        if url.startswith("https://www.bundesbank.de/de"):
+            details |= {
+                "document_html": "",
+                "document_text": "",
+                "document_html_source_language": self.html_content,
+                "document_text_source_language": document_text,
+                "document_title_source_language": document_title,
+            }
+        # If the URL is for the English version
+        else:
+            details |= {
+                "document_html": self.html_content,
+                "document_text": document_text,
+                "document_html_source_language": "",
+                "document_text_source_language": "",
+                "document_title_source_language": "",
+            }
+
+        return details
