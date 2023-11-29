@@ -1,10 +1,10 @@
 # utils.py
 
 
-from app.constants import HEADERS, MAX_BACKOFF_TIME
+from constants import HEADERS, MAX_BACKOFF_TIME
 
 import requests
-import logging
+import logging 
 import time
 import os
 import json

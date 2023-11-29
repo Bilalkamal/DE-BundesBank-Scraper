@@ -1,12 +1,24 @@
 # scraper.py
 
-from app.utils import make_request_with_backoff
-from app.document_parser import DocumentParser
-from app.constants import HEADERS, BASE_URL, CONTENT_TYPE_PATHS, LANGUAGES, REFERER_BASE
+from typing import List, Dict
+import os
+import datetime
+from datetime import datetime
+import csv
+import json
+import requests
+from datetime import date
+from datetime import timedelta
+
 
 from bs4 import BeautifulSoup
 import logging
-from datetime import datetime
+
+
+
+from utils import setup_logging, make_request_with_backoff
+from document_parser import DocumentParser
+from constants import HEADERS, BASE_URL, CONTENT_TYPE_PATHS, LANGUAGES, REFERER_BASE
 
 
 class BundesbankScraper:
@@ -58,10 +70,14 @@ class BundesbankScraper:
             HEADERS["Referer"] = REFERER_BASE[lang][content_type]
             page_url = f"{BASE_URL}/action/{'en' if lang == 'English' else 'de'}/{content_path}/bbksearch?query=&tfi-730578=&tfi-730576=&dateFrom={date_from}&dateTo={date_to}&hitsPerPageString=50&sort=bbksortdate+desc&pageNumString={page_num}"
             response = make_request_with_backoff(page_url)
+            print(page_url)
             if not response:
                 break
             soup = BeautifulSoup(response.content, "html.parser")
+
             ul = soup.find('ul', class_='resultlist')
+            if not ul:
+                break
             links = ul.find_all('a', class_='teasable__link')
             urls = [link['href'] if link['href'].startswith('https') else f"{BASE_URL}{link['href']}" for link in links if 'href' in link.attrs]
             logging.info(f"Found {len(urls)} links on page {page_num + 1}.")
@@ -113,3 +129,49 @@ class BundesbankScraper:
                 results["successes"].append(details)
             else:
                 results["errors"].append(url)
+
+    
+
+def get_countries() -> List[Dict[str, str]]:
+    """
+    Return a list of countries obtained from a RestAPI via the requests library.
+
+    :return: A list of dictionaries with the keys (name, region, iso2, scrape_datetime).
+    """ 
+    response = requests.get('https://restcountries.com/v3.1/all', verify=False).json()
+    
+    return [{
+        'name': record.get('name').get('official'),
+        'region': record.get('region'),
+        'iso2': record.get('cca2'),
+        'scrape_datetime': datetime.datetime.utcnow().strftime('%Y-%m-%s')
+    } for record in response]
+
+
+def run(filename: str):
+    """
+    This function will be the main entrypoint to your code and will be called with a filename.
+    """
+    
+    # countries = get_countries()
+    setup_logging()
+    today = date.today()
+    start_date = today + timedelta(days=-2)
+    print(start_date)
+    end_date = today + timedelta(days=1)
+    print(end_date)
+
+    # # Define the date range and document types for scraping
+    # start_date = date.fromisoformat('2023-11-26')  # Start date of documents
+    # end_date = date.fromisoformat('2023-11-29')    # End date of documents
+    document_types = [ "Press-releases"]  # Options: "Speeches", "Interviews", "Press-releases"
+
+    # Create an instance of BundesbankScraper
+    results = BundesbankScraper(start_date, end_date, document_types).scrape_documents()
+
+    # Scrape and parse the documents
+    json.dump(results, open(filename, 'w'))    
+
+
+if __name__ == "__main__":
+    run('data.json')

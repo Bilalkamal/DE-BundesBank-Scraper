@@ -28,6 +28,8 @@ HEADERS = {
 }
 
 
+
+
 # Base URL for requests
 BASE_URL = "https://www.bundesbank.de"
 
