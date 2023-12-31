@@ -1,4 +1,3 @@
-Based on the information you've provided, I can create a draft for your README.md file. Here's a structured outline for your README, incorporating your project structure, client requirements, and some details from your Python files:
 
 # Bundesbank Document Scraper
 
